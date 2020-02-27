@@ -1,7 +1,7 @@
 import random
 import math
+import joblib
 import numpy as np
-from sklearn.externals import joblib
 
 
 class NeuralNetwork:
