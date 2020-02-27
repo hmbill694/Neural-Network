@@ -60,4 +60,5 @@ $ pip install notebook
 $ pip install numpy
 $ pip install scikit-learn
 $ pip install pandas
+$ pip install joblib
 ```
