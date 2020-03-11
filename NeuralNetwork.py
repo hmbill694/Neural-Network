@@ -12,7 +12,7 @@ class NeuralNetwork:
         self.biases = self.__create_biases(arch)
         self.error = None
         self.learning_rate = learning_rate
-        self.activations = None # All neuron outputs from the network
+        self.activations = None  # All neuron outputs from the network
         self.output = None
         self.training_set = None
         self.testing_set = None
@@ -105,6 +105,8 @@ class NeuralNetwork:
         # the last layer, we omit the first layer as that would calculate
         # the error for inputs which does not make sense
         for index, layer in enumerate(self.weights[:0:-1]):
+            # The error for a layer is the dot product of the transposed weight matrix
+            # and the error of the previous layer
             error.append(np.dot(layer.transpose(), error[index]))
         self.error = list(reversed(error))
 
@@ -161,8 +163,8 @@ class NeuralNetwork:
             to test accuracy. These lists are built from the list of all input pairs.
             This set of pairs will be constrained with a percentage
             of the total set. This percentage is represented as train_set_size. So for example
-            if this method is set to preform with a training set size of .7 then 
-            It will randomly select values from 70% of the list and reserve 30% to test on later. 
+            if this method is set to preform with a training set size of .7 then
+            It will randomly select values from 70% of the list and reserve 30% to test on later.
             """
         if train_set_size <= 0.0 or isinstance(train_set_size, int):
             raise ValueError('Training set size must be a positive floating point number')
@@ -176,23 +178,35 @@ class NeuralNetwork:
 
     def guess(self, input_list):
         """Given a sample input list show what the network would output"""
-        return self.__feed_forward(input_list, True).transpose().flatten()
+
+        return NeuralNetwork.__normalize(self.__feed_forward(input_list, True).transpose().flatten())
 
     def test_network(self):
+        """This method will evaluate a trained network in against it's test set and set its accuracy based on the
+            number it gets correct"""
         total_tests = len(self.testing_set)
         total_correct = 0
-        vectorized_normalize = np.vectorize(lambda x: 1.0 if x >= .5 else 0.0)
         for member in self.testing_set:
             guess = self.guess(member[0])
-            guess = vectorized_normalize(guess)
+            guess = NeuralNetwork.__normalize(guess)
             if np.array_equal(guess, member[1]):
                 total_correct += 1
 
         self.accuracy = total_correct / total_tests
 
     @staticmethod
+    def __normalize(input_arr):
+        """This method will take a numpy array and return it normalized
+            where values >.5 are set to 0 and values greater than 5 are
+            set to 1"""
+        norm = np.vectorize(lambda x: 1.0 if x >= .5 else 0.0)
+        return norm(input_arr)
+
+
+
+    @staticmethod
     def save_network(network, file_name):
-        joblib.dump(network, file_name)
+        joblib.dump(network, file_name, compress=True)
 
     @staticmethod
     def load_network(file_name):
